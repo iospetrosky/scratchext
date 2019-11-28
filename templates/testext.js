@@ -21,7 +21,7 @@ https://github.com/LLK/scratchx/wiki#contents
     $.ajax({
       type: "GET",
       //dataType: "json",
-      url: "http://{{ request.environ['SERVER_NAME'] }}:5000/testget/" + A + "/" + B",
+      url: "http://{{ request.environ['SERVER_NAME'] }}/testget/" + A + "/" + B",
       success: function(data) {
         callback(data);
       },

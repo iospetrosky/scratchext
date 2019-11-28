@@ -1,8 +1,11 @@
 from flask import Flask, render_template
+import sqlite3
+
 app = Flask(__name__)
  
 @app.route("/")
 def index():
+    conn = sqlite3.connect('/home/lorenzopedrotti/flask.db')
     return "<html><body><h1>Test site running under Flask</h1></body></html>"
 
 @app.route("/testext")
