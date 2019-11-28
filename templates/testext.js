@@ -63,7 +63,7 @@ https://github.com/LLK/scratchx/wiki#contents
       measurements: ['kilometers', 'miles']
     },
     */
-    url: 'http://www.iospetrosky.com'
+    url: 'http://lorenzopedrotti.pythonanywhere.com'
   };
 
   //things to do during first run
