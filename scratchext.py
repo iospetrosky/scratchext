@@ -13,6 +13,11 @@ def textext():
 def testget(A,B):
     return "{} + {}".format(A,B)
 
+@app.route("/crossdomain.xml")
+def crossdomain():
+    return render_template("crossdomain.xml")
+
+    
 #commented to run under pythonanywhere.com    
 #if __name__ == "__main__":
 #    app.run(host='0.0.0.0',debug=True) 
