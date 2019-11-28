@@ -9,7 +9,7 @@ def index():
 def textext():
     return render_template("testext.js")
 
-@app.route("/testget")
+@app.route("/testget/<A>/<B>")
 def testget(A,B):
     return "{} + {}".format(A,B)
 
