@@ -2,23 +2,33 @@ from flask import Flask, render_template, request
 import sqlite3
 
 app = Flask(__name__)
+
+def opendb():
+    return sqlite3.connect(app.root_path + '/flask.db')
  
 @app.route("/")
 def index():
-    #conn = sqlite3.connect('/home/lorenzopedrotti/flask.db')
+    #conn = sqlite3.connect(app.root_path + '/flask.db')
     htdata = {'menu':'main'}
     return render_template("index.html", data = htdata)
 
-@app.route("/i2")
-def index2():
-    htdata = {'menu':'super'}
+@app.route("/variables")
+def variables():
+    htdata = {'menu':'variables'}
     return render_template("index.html", data = htdata)
 
-@app.route("/S4")
-def super_quattro():
-    htdata = {'menu':'super', 'active':'#CMD-S4'}
-    return render_template("S4.html", data = htdata)
-    
+@app.route("/varlist")
+def varlist():
+    htdata = {'menu':'variables'}
+    #get the list from DB
+    sql = "select id, session_id, varname, varvalue from myvar"
+    rows = opendb().execute(sql).fetchall()    
+    htdata['rows'] = rows
+    htdata['widths'] = [30,80,80, 250]
+    htdata['names'] = ['id','session_id','varname','varvalue']
+    return render_template("varlist.html", data = htdata)
+
+
     
 ##The next TWO functions are used to deliver the scratch extension
 @app.route("/testext")

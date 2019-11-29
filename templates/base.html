@@ -2,10 +2,9 @@
 <html>
 <head>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'buttons.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'dbtable.css') }}">
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script type="text/javascript">   
-
-
 $(document).ready(function () {
     {% if data.active is defined %}
     $('{{ data.active }}').addClass('current');
@@ -14,7 +13,7 @@ $(document).ready(function () {
         var toks = $(this).attr("ID").split("-");
         console.log(toks[1]);
         //redirect example
-        //window.location.href = "{{ url_for('index2') }}"
+        //window.location.href = "{{ url_for('index') }}"
         window.location.href = "/" + toks[1];
     });
 });
@@ -22,17 +21,22 @@ $(document).ready(function () {
 </head>
 
 <body>
+{% if data.info is defined %}
+{{ data.info }}
+{% endif %}
+
 <div id=MENUBAR>
 {% if data.menu == 'main' %}
-    <button class=MENUITEM id=CMD-F1>button 1</button>
+    <button class=MENUITEM id=CMD-variables>Variables</button>
     <button class=MENUITEM id=CMD-F2>button 2</button>
     <button class=MENUITEM id=CMD-F3>button 3</button>
     <button class=MENUITEM id=CMD-F4>button 4</button>
 {% endif %}
 
-{% if data.menu == 'super' %}
-    <button class=MENUITEM id=CMD-S1>super 1</button>
-    <button class=MENUITEM id=CMD-S2>super 2</button>
+{% if data.menu == 'variables' %}
+    <button class=MENUITEM id=CMD->HOME</button>
+    <button class=MENUITEM id=CMD-varlist>List</button>
+    <button class=MENUITEM id=CMD-newvar>New</button>
     <button class=MENUITEM id=CMD-S3>super 3</button>
     <button class=MENUITEM id=CMD-S4>super 4</button>
 {% endif %}

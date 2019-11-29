@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block CONTENTAREA %}
+
+{% for line in data.rows %}
+    <div class=DBROW>
+    {% for n in range(4) %}
+        <div class=DBFIELD style="width: {{ data.widths[n] }}px" id=FLD-{{ data.names[n] }} >
+            <span>{{ line[n] }}</span>
+        </div>
+    {% endfor %}
+    </div>
+{% endfor %}
+{% endblock %}

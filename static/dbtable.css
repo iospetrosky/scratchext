@@ -1,0 +1,38 @@
+body {
+    font-family: Arial;
+}
+.DBROW {
+    margin-bottom: 3px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid grey;
+}
+
+.DBROW DIV {
+    border-left: 1px solid ; /* Green border */
+    float: left; /* Float the items side by side */
+    margin-right: 2px;
+}
+
+/* Clear floats (clearfix hack) */
+.DBROW:after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.DBROW DIV:not(:last-child) {
+    border-right: none; /* Prevent double borders */
+}
+
+/* Add a background color on hover */
+.DBROW DIV:hover {
+    background-color: #cad4ca;
+}
+
+.DBFIELD {
+    padding-left: 3px;
+    cursor: pointer; /* Pointer/hand icon */    
+}
+.DBFIELD:first-child {
+    cursor: not-allowed; /* not allowed pointer */    
+}
