@@ -21,7 +21,7 @@ https://github.com/LLK/scratchx/wiki#contents
     $.ajax({
       type: "GET",
       //dataType: "json",
-      url: "http://{{ request.environ['SERVER_NAME'] }}/testget/" + A + "/" + B",
+      url: "http://{{ request.environ['SERVER_NAME'] }}:{{ request.environ['REMOTE_PORT'] }}/testget/" + A + "/" + B",
       success: function(data) {
         callback(data);
       },
@@ -30,7 +30,6 @@ https://github.com/LLK/scratchx/wiki#contents
       }
     });
   }
-
 
   ext.calculated = function(A, B) {
     console.log(A);

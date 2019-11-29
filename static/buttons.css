@@ -1,0 +1,36 @@
+body {
+    font-family: Arial;
+}
+#MENUBAR {
+    margin-bottom: 3px;
+}
+
+#MENUBAR button {
+    background-color: #4CAF50; /* Green background */
+    border: 1px solid green; /* Green border */
+    color: white; /* White text */
+    padding: 10px 24px; /* Some padding */
+    cursor: pointer; /* Pointer/hand icon */
+    float: left; /* Float the buttons side by side */
+    margin-right: 2px;
+}
+
+/* Clear floats (clearfix hack) */
+#MENUBAR:after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+#MENUBAR .current {
+    background-color: red;
+}
+
+#MENUBAR button:not(:last-child) {
+    border-right: none; /* Prevent double borders */
+}
+
+/* Add a background color on hover */
+#MENUBAR button:hover {
+    background-color: #3e8e41;
+}

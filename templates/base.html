@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'buttons.css') }}">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script type="text/javascript">   
+
+
+$(document).ready(function () {
+    {% if data.active is defined %}
+    $('{{ data.active }}').addClass('current');
+    {% endif %}
+    $(".MENUITEM").mouseup(function(e) {
+        var toks = $(this).attr("ID").split("-");
+        console.log(toks[1]);
+        //redirect example
+        //window.location.href = "{{ url_for('index2') }}"
+        window.location.href = "/" + toks[1];
+    });
+});
+</script> 
+</head>
+
+<body>
+<div id=MENUBAR>
+{% if data.menu == 'main' %}
+    <button class=MENUITEM id=CMD-F1>button 1</button>
+    <button class=MENUITEM id=CMD-F2>button 2</button>
+    <button class=MENUITEM id=CMD-F3>button 3</button>
+    <button class=MENUITEM id=CMD-F4>button 4</button>
+{% endif %}
+
+{% if data.menu == 'super' %}
+    <button class=MENUITEM id=CMD-S1>super 1</button>
+    <button class=MENUITEM id=CMD-S2>super 2</button>
+    <button class=MENUITEM id=CMD-S3>super 3</button>
+    <button class=MENUITEM id=CMD-S4>super 4</button>
+{% endif %}
+</div>
+
+<div id=CONTENTAREA>
+{% block CONTENTAREA %}
+<p>My first paragraph.</p>
+{% endblock %}
+</DIV>
+</body>
+</html>
