@@ -43,6 +43,8 @@ def testget(A,B):
 
     
 #commented to run under pythonanywhere.com    
+'''
 if __name__ == "__main__":
 #    app.run(debug=True) 
-    app.run(host='192.168.1.112',debug=True)     
+    app.run(host='192.168.1.112',debug=True)  
+'''    
