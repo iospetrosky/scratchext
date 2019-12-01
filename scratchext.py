@@ -1,19 +1,19 @@
 from flask import Flask, render_template, request
-from os.path import isfile
+from os.path import exists
 import sqlite3
 
 app = Flask(__name__)
 
-/home/lorenzopedrotti/www
-
 def opendb():
-    var dbfile
-    if isfile("/home/lorenzopedrotti/www"):
+    if exists("/home/lorenzopedrotti/www"):
         return sqlite3.connect('/home/lorenzopedrotti/www/flask.db')
-    
+    if exists("/home/pi/WWW/scratchext"):
+        return sqlite3.connect('/home/pi/WWW/scratchext/flask.db')
+    if exists("C:/Users/LPEDR/Documents/SAP/Util/flask")
+        return sqlite3.connect('C:/Users/LPEDR/Documents/SAP/Util/flask/flask.db')
+        
 @app.route("/")
 def index():
-    #conn = sqlite3.connect(app.root_path + '/flask.db')
     htdata = {'menu':'main'}
     return render_template("index.html", data = htdata)
 
@@ -32,6 +32,14 @@ def varlist():
     htdata['widths'] = [30,80,80, 250]
     htdata['names'] = ['id','session_id','varname','varvalue']
     return render_template("varlist.html", data = htdata)
+
+@app.route("/pushvar/<varname>/<varvalue>")
+def pushvar(varname, varvalue):
+    db = opendb()
+    #try to get the record... and in case update
+    
+    #otherwise create a new record
+
     
 ##The next TWO functions are used to deliver the scratch extension
 @app.route("/testext.js")
@@ -48,8 +56,7 @@ def testget(A,B):
 
     
 #commented to run under pythonanywhere.com    
-'''
+
 if __name__ == "__main__":
 #    app.run(debug=True) 
-    app.run(host='192.168.1.112',debug=True)  
-'''    
+    app.run(host='192.168.1.112',debug=True)   
