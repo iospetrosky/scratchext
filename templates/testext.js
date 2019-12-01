@@ -16,12 +16,18 @@ https://github.com/LLK/scratchx/wiki#contents
   var SOME_GLOB = 10; //A class variable
 
   var some_values = {}; //A class array
+  {% if request.environ['SERVER_NAME'] == '192.168.1.112' %}
+  var base_url = "http://192.168.1.112:5000";
+  {% endif %}
+  {% if request.environ['SERVER_NAME'] == 'lorenzopedrotti.pythonanywhere.com' %}
+  var base_url = "http://lorenzopedrotti.pythonanywhere.com";
+  {% endif %}
 
   ext.delayedresult = function(A, B, callback) {
     $.ajax({
       type: "GET",
       //dataType: "json",
-      url: "http://{{ request.environ['SERVER_NAME'] }}:{{ request.environ['REMOTE_PORT'] }}/testget/" + A + "/" + B",
+      url: base_url + "/testget/" + A + "/" + B ,
       success: function(data) {
         callback(data);
       },

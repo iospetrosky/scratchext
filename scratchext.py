@@ -27,11 +27,9 @@ def varlist():
     htdata['widths'] = [30,80,80, 250]
     htdata['names'] = ['id','session_id','varname','varvalue']
     return render_template("varlist.html", data = htdata)
-
-
     
 ##The next TWO functions are used to deliver the scratch extension
-@app.route("/testext")
+@app.route("/testext.js")
 def textext():
     return render_template("testext.js")
 
@@ -46,5 +44,5 @@ def testget(A,B):
     
 #commented to run under pythonanywhere.com    
 if __name__ == "__main__":
-    app.run(debug=True) 
-#    app.run(host='0.0.0.0',debug=True)     
+#    app.run(debug=True) 
+    app.run(host='192.168.1.112',debug=True)     
