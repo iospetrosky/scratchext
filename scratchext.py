@@ -1,11 +1,16 @@
 from flask import Flask, render_template, request
+from os.path import isfile
 import sqlite3
 
 app = Flask(__name__)
 
+/home/lorenzopedrotti/www
+
 def opendb():
-    return sqlite3.connect(app.root_path + '/flask.db')
- 
+    var dbfile
+    if isfile("/home/lorenzopedrotti/www"):
+        return sqlite3.connect('/home/lorenzopedrotti/www/flask.db')
+    
 @app.route("/")
 def index():
     #conn = sqlite3.connect(app.root_path + '/flask.db')
