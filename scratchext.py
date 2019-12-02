@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template #, request
 from os.path import exists
 import sqlite3
 
@@ -9,9 +9,9 @@ def opendb():
         return sqlite3.connect('/home/lorenzopedrotti/www/flask.db')
     if exists("/home/pi/WWW/scratchext"):
         return sqlite3.connect('/home/pi/WWW/scratchext/flask.db')
-    if exists("C:/Users/LPEDR/Documents/SAP/Util/flask")
+    if exists("C:/Users/LPEDR/Documents/SAP/Util/flask"):
         return sqlite3.connect('C:/Users/LPEDR/Documents/SAP/Util/flask/flask.db')
-        
+
 @app.route("/")
 def index():
     htdata = {'menu':'main'}
@@ -27,7 +27,7 @@ def varlist():
     htdata = {'menu':'variables'}
     #get the list from DB
     sql = "select id, session_id, varname, varvalue from myvar"
-    rows = opendb().execute(sql).fetchall()    
+    rows = opendb().execute(sql).fetchall()
     htdata['rows'] = rows
     htdata['widths'] = [30,80,80, 250]
     htdata['names'] = ['id','session_id','varname','varvalue']
@@ -37,10 +37,10 @@ def varlist():
 def pushvar(varname, varvalue):
     db = opendb()
     #try to get the record... and in case update
-    
+
     #otherwise create a new record
 
-    
+
 ##The next TWO functions are used to deliver the scratch extension
 @app.route("/testext.js")
 def textext():
@@ -54,9 +54,9 @@ def crossdomain():
 def testget(A,B):
     return "{} + {}".format(A,B)
 
-    
-#commented to run under pythonanywhere.com    
+
+#commented to run under pythonanywhere.com
 
 if __name__ == "__main__":
-#    app.run(debug=True) 
-    app.run(host='192.168.1.112',debug=True)   
+#    app.run(debug=True)
+    app.run(host='192.168.1.112',debug=True)
