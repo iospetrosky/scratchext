@@ -1,4 +1,4 @@
-from flask import Flask, render_template #, request
+from flask import Flask, render_template, request
 from os.path import exists
 import sqlite3
 
@@ -12,8 +12,18 @@ def opendb():
     if exists("C:/Users/LPEDR/Documents/SAP/Util/flask"):
         return sqlite3.connect('C:/Users/LPEDR/Documents/SAP/Util/flask/flask.db')
 
+def check_session_cookie():
+    if 'session_id' in request.cookies:
+        return request.cookies.get('session_id')
+    else:
+        return 'X'
+
+        
 @app.route("/")
 def index():
+    if check_session_cookie() == 'X':
+        return setsession()
+        
     htdata = {'menu':'main'}
     return render_template("index.html", data = htdata)
 
@@ -33,6 +43,14 @@ def varlist():
     htdata['names'] = ['id','session_id','varname','varvalue']
     return render_template("varlist.html", data = htdata)
 
+@app.route("/setsession")    
+@app.route("/setsession/<session_id>")
+def setsession(session_id='X'):
+    htdata = {'menu':'sessions'}
+    return render_template("setsession.html", data = htdata)
+    
+    
+    
 @app.route("/pushvar/<varname>/<varvalue>")
 def pushvar(varname, varvalue):
     db = opendb()
@@ -58,5 +76,5 @@ def testget(A,B):
 #commented to run under pythonanywhere.com
 
 if __name__ == "__main__":
-#    app.run(debug=True)
-    app.run(host='192.168.1.112',debug=True)
+    app.run(debug=True)
+#    app.run(host='192.168.1.112',debug=True)

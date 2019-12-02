@@ -24,27 +24,30 @@ $(document).ready(function () {
 {% if data.info is defined %}
 {{ data.info }}
 {% endif %}
-
 <div id=MENUBAR>
 {% if data.menu == 'main' %}
     <button class=MENUITEM id=CMD-variables>Variables</button>
-    <button class=MENUITEM id=CMD-F2>button 2</button>
+    <button class=MENUITEM id=CMD-sessions>Sessions</button>
+    <!--
     <button class=MENUITEM id=CMD-F3>button 3</button>
     <button class=MENUITEM id=CMD-F4>button 4</button>
+    -->
 {% endif %}
-
 {% if data.menu == 'variables' %}
     <button class=MENUITEM id=CMD->HOME</button>
     <button class=MENUITEM id=CMD-varlist>List</button>
     <button class=MENUITEM id=CMD-newvar>New</button>
-    <button class=MENUITEM id=CMD-S3>super 3</button>
-    <button class=MENUITEM id=CMD-S4>super 4</button>
+{% endif %}
+{% if data.menu == 'sessions' %}
+    <button class=MENUITEM id=CMD->HOME</button>
+    <button class=MENUITEM id=CMD-setsession>New session</button>
+    <button class=MENUITEM id=CMD-mysessions>My sessions</button>
 {% endif %}
 </div>
 
 <div id=CONTENTAREA>
 {% block CONTENTAREA %}
-<p>My first paragraph.</p>
+<p>Deafut text that should never be visible</p>
 {% endblock %}
 </DIV>
 </body>
