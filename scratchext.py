@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, send_from_directory, make_response
 from os.path import exists, join as pathjoin
-import sqlite3
+import sqlite3, string, random
 
 app = Flask(__name__)
 
@@ -42,17 +42,26 @@ def varlist():
     sql = "select id, session_id, varname, varvalue from myvar where session_id = '{}'".format(check_session_cookie())
     rows = opendb().execute(sql).fetchall()
     htdata['rows'] = rows
-    htdata['widths'] = [30,80,80,250]
+    htdata['widths'] = [30,180,80,250]
     htdata['names'] = ['id','session_id','varname','varvalue']
     return render_template("varlist.html", data = htdata)
 
-@app.route("/newsession")    
+@app.route("/newsession",methods=["POST","GET"])    
 def newsession():
     if check_user_cookie() == 'X': return logon()
-    #
+    if request.method == 'POST':
+        letters = string.ascii_lowercase + string.ascii_uppercase
+        newid = ''.join(random.choice(letters) for i in range(12))
+        sql = "insert into sessions (session_id, user_id) values ('{}','{}')"
+        sql = sql.format(newid,check_user_cookie())
+        db = opendb()
+        db.execute(sql)
+        db.commit()
+        return mysessions()
+    
     htdata = {'menu':'sessions'}
     return render_template("newsession.html", data = htdata)
-
+    
 @app.route("/setsession/<session_id>")
 def setsession(session_id):
     if check_user_cookie() == 'X': return logon()
@@ -71,6 +80,20 @@ def mysessions():
     htdata['names'] = ['id','session_id']
     return render_template("mysessions.html", data = htdata)
 
+@app.route("/newvar", methods=["POST","GET"])
+def newvar():
+    if check_user_cookie() == 'X': return logon()
+    if check_session_cookie() == 'X': return mysessions()
+    if request.method == 'POST':
+        sql = "insert into myvar (session_id, varname, varvalue) values ('{}','{}','{}')"
+        sql = sql.format(check_session_cookie(), request.form['varname'], request.form['varvalue'])
+        db = opendb()
+        db.execute(sql)
+        db.commit()
+        return varlist()
+        
+    htdata = {'menu':'variables'}
+    return render_template("newvar.html", data = htdata)
     
 @app.route("/logon", methods=["POST","GET"])
 def logon():

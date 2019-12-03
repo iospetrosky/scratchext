@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block CONTENTAREA %}
+<h2>Set up a new variable</h2>
+<div id=NEWVAR_FORM class=APP_FORMS>
+<form method="post" action="/newvar" autocomplete="off">
+    <p><input type="text" name="varname" value="" placeholder="Name of the variable"></p>
+    <p><input type="text" name="varvalue" value="" placeholder="Initial value"></p>
+    <p class="submit"><input type="submit" name="commit" value="Create"></p>
+</form>
+</div>
+
+{% endblock %}
