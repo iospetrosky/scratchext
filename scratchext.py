@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request
-from os.path import exists
+from flask import Flask, render_template, request, send_from_directory, make_response
+from os.path import exists, join as pathjoin
 import sqlite3
 
 app = Flask(__name__)
@@ -12,44 +12,98 @@ def opendb():
     if exists("C:/Users/LPEDR/Documents/SAP/Util/flask"):
         return sqlite3.connect('C:/Users/LPEDR/Documents/SAP/Util/flask/flask.db')
 
-def check_session_cookie():
-    if 'session_id' in request.cookies:
-        return request.cookies.get('session_id')
+def check_cookie(ckname):
+    if ckname in request.cookies:
+        return request.cookies.get(ckname)
     else:
         return 'X'
+    
+def check_session_cookie():
+    return check_cookie('session_id')
 
-        
+def check_user_cookie():
+    return check_cookie('user_id')
+
+    
 @app.route("/")
 def index():
-    if check_session_cookie() == 'X':
-        return setsession()
+    if check_user_cookie() == 'X': return logon()
         
     htdata = {'menu':'main'}
     return render_template("index.html", data = htdata)
 
-@app.route("/variables")
-def variables():
-    htdata = {'menu':'variables'}
-    return render_template("index.html", data = htdata)
-
 @app.route("/varlist")
 def varlist():
+    if check_user_cookie() == 'X': return logon()
+    if check_session_cookie() == 'X': return mysessions()
+
     htdata = {'menu':'variables'}
     #get the list from DB
-    sql = "select id, session_id, varname, varvalue from myvar"
+    sql = "select id, session_id, varname, varvalue from myvar where session_id = '{}'".format(check_session_cookie())
     rows = opendb().execute(sql).fetchall()
     htdata['rows'] = rows
-    htdata['widths'] = [30,80,80, 250]
+    htdata['widths'] = [30,80,80,250]
     htdata['names'] = ['id','session_id','varname','varvalue']
     return render_template("varlist.html", data = htdata)
 
-@app.route("/setsession")    
-@app.route("/setsession/<session_id>")
-def setsession(session_id='X'):
+@app.route("/newsession")    
+def newsession():
+    if check_user_cookie() == 'X': return logon()
+    #
     htdata = {'menu':'sessions'}
-    return render_template("setsession.html", data = htdata)
+    return render_template("newsession.html", data = htdata)
+
+@app.route("/setsession/<session_id>")
+def setsession(session_id):
+    if check_user_cookie() == 'X': return logon()
+    #sql = 
     
+@app.route("/mysessions")
+def mysessions():
+    if check_user_cookie() == 'X': return logon()
     
+    #get the list of sessions and pass to the template
+    htdata = {'menu':'sessions'}
+    sql = "select id, session_id from sessions where user_id = {}".format(check_user_cookie())
+    rows = opendb().execute(sql).fetchall()
+    htdata['rows'] = rows
+    htdata['widths'] = [30,80]
+    htdata['names'] = ['id','session_id']
+    return render_template("mysessions.html", data = htdata)
+
+    
+@app.route("/logon", methods=["POST","GET"])
+def logon():
+    try:
+        #is there a logon attempt?
+        if request.method == 'POST':
+            sql = "select id, name from users where name = '{}' and passwd = '{}'".format(request.form['login'],request.form['password'])
+            user = opendb().execute(sql).fetchone()
+            if user is not None:
+                htdata = {'menu':'main', 'screen':'welcome', 'info': "Welcome {}".format(user[1])}
+                resp = make_response(render_template("index.html", data = htdata))
+                resp.set_cookie('user_id', value = str(user[0]), max_age = 60*10)
+                return resp
+            else:
+                htdata = {'menu':'main', 'screen':'logon', 'info': 'Invalid user name or password'}
+                resp = make_response(render_template("index.html", data = htdata))
+                resp.set_cookie('user_id', '', -1)
+                return resp
+    except:
+        return make_response("Something bad happened")
+    #in all other cases
+    htdata = {'menu':'main', 'screen':'logon'}
+    resp = make_response(render_template("index.html", data = htdata))
+    resp.set_cookie('user_id', '', -1)
+    return resp
+
+
+###########  AJAX CALLS  ############
+@app.route("/getsession/<id>")
+def get_session_name(id):
+    sql = "select session_id from sessions where id = {}".format(id)
+    return make_response(opendb().execute(sql).fetchone()[0])
+
     
 @app.route("/pushvar/<varname>/<varvalue>")
 def pushvar(varname, varvalue):
@@ -72,6 +126,10 @@ def crossdomain():
 def testget(A,B):
     return "{} + {}".format(A,B)
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(pathjoin(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')    
 
 #commented to run under pythonanywhere.com
 

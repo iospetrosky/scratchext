@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block LOCALJS %}
+<script type="text/javascript">
+function run_local() {
+    console.log("Local functions defined");
+    
+    $(".SELECT_SESSION").mouseup(function(e) {
+        var toks = $(this).attr("ID").split("-");
+        $.get("/getsession/" + toks[1], function(result) {
+            setCookie('session_id',result,1);
+            window.location.href = "/varlist"
+        });
+    });
+}
+</script>
+{% endblock %}
+
+{% block CONTENTAREA %}
+<h2>Select the session you want to activate</h2>
+{% for line in data.rows %}
+    <div class=DBROW>
+    {% for n in range(2) %}
+        <div class=DBFIELD style="width: {{ data.widths[n] }}px" id=FLD-{{ data.names[n] }} >
+            <span>{{ line[n] }}</span>
+        </div>
+    {% endfor %}
+    <div>
+        <button class=SELECT_SESSION id=BUT-{{ line[0] }}>Activate</button>
+    </div>
+    </div>
+{% endfor %}
+{% endblock %}

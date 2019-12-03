@@ -1,5 +1,5 @@
 --deployed on Lenovo
-
+--deployed on PythonAnyWhere
 CREATE TABLE sessions (
     ID         INTEGER    PRIMARY KEY AUTOINCREMENT,
     session_id CHAR (10)  DEFAULT 'XXX',

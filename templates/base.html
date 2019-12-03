@@ -1,8 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'basic.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'buttons.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'dbtable.css') }}">
+{% if data.screen is defined %}
+    {% if data.screen == 'logon' %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'logon.css') }}">
+    {% endif %}
+{% endif %}
+
+<script src="{{ url_for('static', filename = 'cookies.js') }}"></script>
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script type="text/javascript">   
 $(document).ready(function () {
@@ -16,20 +24,23 @@ $(document).ready(function () {
         //window.location.href = "{{ url_for('index') }}"
         window.location.href = "/" + toks[1];
     });
+    if(typeof(run_local) == typeof(Function)) {
+        run_local(); // must be defined in the subsequent templates
+    }
+    
 });
 </script> 
+{% block LOCALJS %}
+{% endblock %}
 </head>
 
 <body>
-{% if data.info is defined %}
-{{ data.info }}
-{% endif %}
 <div id=MENUBAR>
 {% if data.menu == 'main' %}
-    <button class=MENUITEM id=CMD-variables>Variables</button>
-    <button class=MENUITEM id=CMD-sessions>Sessions</button>
+    <button class=MENUITEM id=CMD-varlist>Variables</button>
+    <button class=MENUITEM id=CMD-mysessions>Sessions</button>
+    <button class=MENUITEM id=CMD-logon>Logoff</button>
     <!--
-    <button class=MENUITEM id=CMD-F3>button 3</button>
     <button class=MENUITEM id=CMD-F4>button 4</button>
     -->
 {% endif %}
@@ -40,11 +51,15 @@ $(document).ready(function () {
 {% endif %}
 {% if data.menu == 'sessions' %}
     <button class=MENUITEM id=CMD->HOME</button>
-    <button class=MENUITEM id=CMD-setsession>New session</button>
+    <button class=MENUITEM id=CMD-newsession>New session</button>
     <button class=MENUITEM id=CMD-mysessions>My sessions</button>
 {% endif %}
 </div>
-
+{% if data.info is defined %}
+<div id=INFO>
+{{ data.info }}
+</DIV>
+{% endif %}
 <div id=CONTENTAREA>
 {% block CONTENTAREA %}
 <p>Deafut text that should never be visible</p>
