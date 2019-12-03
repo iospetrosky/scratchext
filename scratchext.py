@@ -76,7 +76,7 @@ def mysessions():
     sql = "select id, session_id from sessions where user_id = {}".format(check_user_cookie())
     rows = opendb().execute(sql).fetchall()
     htdata['rows'] = rows
-    htdata['widths'] = [30,80]
+    htdata['widths'] = [30,180]
     htdata['names'] = ['id','session_id']
     return render_template("mysessions.html", data = htdata)
 
@@ -127,6 +127,14 @@ def get_session_name(id):
     sql = "select session_id from sessions where id = {}".format(id)
     return make_response(opendb().execute(sql).fetchone()[0])
 
+@app.route("/delsession/<id>")
+def delete_session(id):
+    db = opendb()
+    id_tx = db.execute("select session_id from sessions where id = {}".format(id)).fetchone()[0]
+    db.execute("delete from sessions where id = {}".format(id))
+    db.execute("delete from myvar where session_id = '{}'".format(id_tx))
+    db.commit()
+    return 'ok'
     
 @app.route("/pushvar/<varname>/<varvalue>")
 def pushvar(varname, varvalue):
@@ -157,5 +165,5 @@ def favicon():
 #commented to run under pythonanywhere.com
 
 if __name__ == "__main__":
-    app.run(debug=True)
-#    app.run(host='192.168.1.112',debug=True)
+#    app.run(debug=True)
+    app.run(host='192.168.1.112',debug=True)

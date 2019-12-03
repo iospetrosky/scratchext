@@ -5,12 +5,20 @@
 function run_local() {
     console.log("Local functions defined");
     
-    $(".SELECT_SESSION").mouseup(function(e) {
+    $(".SESSION_ACT").mouseup(function(e) {
         var toks = $(this).attr("ID").split("-");
-        $.get("/getsession/" + toks[1], function(result) {
-            setCookie('session_id',result,1);
-            window.location.href = "/varlist"
-        });
+        if (toks[2] == 'ACTIV') {
+            $.get("/getsession/" + toks[1], function(result) {
+                setCookie('session_id',result,1);
+                window.location.href = "/varlist"
+            });
+        }
+        if (toks[2] == 'DEL') {
+            $.get("/delsession/" + toks[1], function(result) {
+                setCookie('session_id','',-1);
+                window.location.href = "/newsession"
+            });
+        }
     });
 }
 </script>
@@ -25,8 +33,9 @@ function run_local() {
             <span>{{ line[n] }}</span>
         </div>
     {% endfor %}
-    <div>
-        <button class=SELECT_SESSION id=BUT-{{ line[0] }}>Activate</button>
+    <div class=DBFIELD>
+        <button class=SESSION_ACT id=BUT-{{ line[0] }}-ACTIV>Activate</button>
+        <button class=SESSION_ACT id=BUT-{{ line[0] }}-DEL>Delete</button>
     </div>
     </div>
 {% endfor %}
