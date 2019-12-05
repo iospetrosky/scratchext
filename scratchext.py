@@ -1,8 +1,15 @@
 from flask import Flask, render_template, request, send_from_directory, make_response
 from os.path import exists, join as pathjoin
-import sqlite3, string, random
+import sqlite3, string, random, sys
 
 app = Flask(__name__)
+
+def print_debug(text):
+    dbg = True #debug main switch
+    if dbg:
+        caller = sys._getframe(1).f_code.co_name
+        print('Calling from: ' + caller, file=sys.stderr)
+        print(text)
 
 def opendb():
     if exists("/home/lorenzopedrotti/www"):
@@ -24,9 +31,32 @@ def check_session_cookie():
 def check_user_cookie():
     return check_cookie('user_id')
 
+def is_PRO(db):
+    #check if a user is a PRO user
+    sql = "select count(id) from users where id = {} and groups like '%PRO%'".format(check_user_cookie())
+    #print_debug(sql)
+    if db.execute(sql).fetchone()[0] == 1:
+        return True
+    else:
+        return False
+
+def count_session_vars(db):
+    #counts the variables defined in this session
+    sql = "select count(id) from myvar where session_id = '{}'".format(check_session_cookie())
+    #print_debug(sql)
+    return int(db.execute(sql).fetchone()[0])
     
+def count_user_sessions(db):
+    #counts how many sessions are owned by the current user
+    sql = "select count(id) from sessions where user_id = {}".format(check_user_cookie())
+    #print_debug(sql)
+    return int(db.execute(sql).fetchone()[0])
+        
 @app.route("/")
+
 def index():
+    #print_debug(request.user_agent.platform)
+    #platforms = "Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini"
     if check_user_cookie() == 'X': return logon()
         
     htdata = {'menu':'main'}
@@ -42,6 +72,7 @@ def varlist():
     db = opendb()
     htdata['session'] = check_session_cookie()
     sql = "select id, session_id, varname, varvalue from myvar where session_id = '{}'".format(check_session_cookie())
+    print_debug(sql)
     rows = db.execute(sql).fetchall()
     htdata['rows'] = rows
     htdata['widths'] = [30,180,80,250]
@@ -51,17 +82,21 @@ def varlist():
 @app.route("/newsession",methods=["POST","GET"])    
 def newsession():
     if check_user_cookie() == 'X': return logon()
-    if request.method == 'POST':
-        letters = string.ascii_lowercase + string.ascii_uppercase
-        newid = ''.join(random.choice(letters) for i in range(12))
-        sql = "insert into sessions (session_id, user_id) values ('{}','{}')"
-        sql = sql.format(newid,check_user_cookie())
-        db = opendb()
-        db.execute(sql)
-        db.commit()
-        return mysessions()
+    htdata = {'menu':'sessions'} #this will be redefined in case we call mysessions()
     
-    htdata = {'menu':'sessions'}
+    if request.method == 'POST':
+        db = opendb()
+        if is_PRO(db) or count_user_sessions(db) < 1:
+            letters = string.ascii_lowercase + string.ascii_uppercase
+            newid = ''.join(random.choice(letters) for i in range(12))
+            sql = "insert into sessions (session_id, user_id) values ('{}','{}')"
+            sql = sql.format(newid,check_user_cookie())
+            db.execute(sql)
+            db.commit()
+            return mysessions()
+        else:
+            htdata['info'] = "You must have a PRO account to add more than ONE session"
+    
     return render_template("newsession.html", data = htdata)
     
 @app.route("/setsession/<session_id>")
@@ -86,15 +121,20 @@ def mysessions():
 def newvar():
     if check_user_cookie() == 'X': return logon()
     if check_session_cookie() == 'X': return mysessions()
+    htdata = {'menu':'variables'} #this will be redefined in case we call varlist()
+
     if request.method == 'POST':
-        sql = "insert into myvar (session_id, varname, varvalue) values ('{}','{}','{}')"
-        sql = sql.format(check_session_cookie(), request.form['varname'], request.form['varvalue'])
         db = opendb()
-        db.execute(sql)
-        db.commit()
-        return varlist()
         
-    htdata = {'menu':'variables'}
+        if is_PRO(db) or count_session_vars(db) < 4:
+            sql = "insert into myvar (session_id, varname, varvalue) values ('{}','{}','{}')"
+            sql = sql.format(check_session_cookie(), request.form['varname'], request.form['varvalue'])
+            db.execute(sql)
+            db.commit()
+            return varlist()
+        else:
+            htdata['info'] = "You must have a PRO account to add more than 4 variables"
+        
     htdata['session'] = check_session_cookie()
     return render_template("newvar.html", data = htdata)
     
@@ -135,7 +175,7 @@ def get_session_name(id):
     return make_response(opendb().execute(sql).fetchone()[0])
 
 @app.route("/delsession/<id>")
-def delete_session(id):
+def delete_session(id): #the ID is the auto_number of the table in this case
     db = opendb()
     id_tx = db.execute("select session_id from sessions where id = {}".format(id)).fetchone()[0]
     db.execute("delete from sessions where id = {}".format(id))
