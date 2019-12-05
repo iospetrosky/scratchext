@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block CONTENTAREA %}
-
+<h2>Variables set for session <font color=green>{{ data.session }}</font></h2>
 {% for line in data.rows %}
     <div class=DBROW>
     {% for n in range(4) %}

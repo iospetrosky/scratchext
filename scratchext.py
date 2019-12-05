@@ -39,8 +39,10 @@ def varlist():
 
     htdata = {'menu':'variables'}
     #get the list from DB
+    db = opendb()
+    htdata['session'] = check_session_cookie()
     sql = "select id, session_id, varname, varvalue from myvar where session_id = '{}'".format(check_session_cookie())
-    rows = opendb().execute(sql).fetchall()
+    rows = db.execute(sql).fetchall()
     htdata['rows'] = rows
     htdata['widths'] = [30,180,80,250]
     htdata['names'] = ['id','session_id','varname','varvalue']
@@ -93,31 +95,36 @@ def newvar():
         return varlist()
         
     htdata = {'menu':'variables'}
+    htdata['session'] = check_session_cookie()
     return render_template("newvar.html", data = htdata)
     
 @app.route("/logon", methods=["POST","GET"])
 def logon():
-    try:
-        #is there a logon attempt?
-        if request.method == 'POST':
-            sql = "select id, name from users where name = '{}' and passwd = '{}'".format(request.form['login'],request.form['password'])
-            user = opendb().execute(sql).fetchone()
-            if user is not None:
-                htdata = {'menu':'main', 'screen':'welcome', 'info': "Welcome {}".format(user[1])}
-                resp = make_response(render_template("index.html", data = htdata))
-                resp.set_cookie('user_id', value = str(user[0]), max_age = 60*10)
-                return resp
-            else:
-                htdata = {'menu':'main', 'screen':'logon', 'info': 'Invalid user name or password'}
-                resp = make_response(render_template("index.html", data = htdata))
-                resp.set_cookie('user_id', '', -1)
-                return resp
-    except:
-        return make_response("Something bad happened")
+    #is there a logon attempt?
+    if request.method == 'POST':
+        sql = "select id, name from users where name = '{}' and passwd = '{}'".format(request.form['login'],request.form['password'])
+        user = opendb().execute(sql).fetchone()
+        if user is not None:
+            htdata = {'menu':'main', 'screen':'welcome', 'info': "Welcome {}".format(user[1])}
+            resp = make_response(render_template("index.html", data = htdata))
+            try:
+                if request.form["remember_me"] == "X":
+                    resp.set_cookie('user_id', value = str(user[0]), max_age = 60*60*24*365) #remember for 1 year
+            except:
+                resp.set_cookie('user_id', value = str(user[0])) #remember for session
+            resp.set_cookie('session_id', '', -1)
+            return resp
+        else:
+            htdata = {'menu':'main', 'screen':'logon', 'info': 'Invalid user name or password'}
+            resp = make_response(render_template("index.html", data = htdata))
+            resp.set_cookie('user_id', '', -1)
+            resp.set_cookie('session_id', '', -1)
+            return resp
     #in all other cases
     htdata = {'menu':'main', 'screen':'logon'}
     resp = make_response(render_template("index.html", data = htdata))
     resp.set_cookie('user_id', '', -1)
+    resp.set_cookie('session_id', '', -1)
     return resp
 
 
@@ -165,5 +172,5 @@ def favicon():
 #commented to run under pythonanywhere.com
 
 if __name__ == "__main__":
-#    app.run(debug=True)
-    app.run(host='192.168.1.112',debug=True)
+    app.run(debug=True)
+#    app.run(host='192.168.1.112',debug=True)

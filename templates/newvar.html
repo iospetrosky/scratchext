@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block CONTENTAREA %}
-<h2>Set up a new variable</h2>
+<h2>Set up a new variable for session <font color=green>{{ data.session }}</font></h2>
 <div id=NEWVAR_FORM class=APP_FORMS>
 <form method="post" action="/newvar" autocomplete="off">
     <p><input type="text" name="varname" value="" placeholder="Name of the variable"></p>
