@@ -90,10 +90,10 @@ https://github.com/LLK/scratchx/wiki#contents
 
   var descriptor = {
     blocks: [
-      //['h', 'when ISS passes over %s', 'whenISSPasses', 'Boston, MA'],
+      //['h', 'when ISS passes over %s', 'whenISSPasses', 'Boston, MA'], // a starter block, event
       ['r', 'Sum of 2 numbers %s %s','calculated', 1, 2], // sync call
       ['R', 'Exp of numbers %s %s', 'delayedresult', 2, 4], // async call
-      ['r', 'Save variable %s %s','putvar', 'varname', 'varvalue'],
+      [' ', 'Save variable %s %s','putvar', 'varname', 'varvalue'], // sync command (w is for async)
       ['R', 'Get variable %s', 'getvar', 'variable']
     ],
     /*
