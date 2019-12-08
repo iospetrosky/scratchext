@@ -13,7 +13,7 @@ https://github.com/LLK/scratchx/wiki#contents
  */
 (function(ext) {
 
-  var SOME_GLOB = 10; //A class variable
+  var SESSION = '{{ data.session_id }}'; //A class variable
 
   var some_values = {}; //A class array
   {% if request.environ['SERVER_NAME'] == '192.168.1.112' %}
@@ -23,11 +23,43 @@ https://github.com/LLK/scratchx/wiki#contents
   var base_url = "http://lorenzopedrotti.pythonanywhere.com";
   {% endif %}
 
+  ext.getvar = function(VAR, callback) {
+    $.ajax({
+      type: "GET",
+      crossDomain: true,
+      url: base_url + "/getvar/" + SESSION + "/" + VAR,
+      success: function(data) {
+        console.log(data)
+        callback(data);
+      },
+      error: function(jqxhr, textStatus, error) {
+        console.log("Error during get");
+      }
+    });
+  }
+
+  ext.putvar = function(VAR,VAL) {
+    $.ajax({
+      type: "GET",
+      crossDomain: true,
+      url: base_url + "/putvar/" + SESSION + "/" + VAR + "/" + VAL,
+      success: function(data) {
+        console.log(data)
+      },
+      error: function(jqxhr, textStatus, error) {
+        console.log("Error during putval");
+      }
+    });
+
+  }
+
+
   ext.delayedresult = function(A, B, callback) {
     $.ajax({
       type: "GET",
       //dataType: "json",
-      url: base_url + "/testget/" + A + "/" + B ,
+      crossDomain: true,
+      url: base_url + "/testget/" + SESSION + "/" + A + "/" + B ,
       success: function(data) {
         callback(data);
       },
@@ -38,8 +70,8 @@ https://github.com/LLK/scratchx/wiki#contents
   }
 
   ext.calculated = function(A, B) {
-    console.log(A);
-    console.log(B);
+    //console.log(A);
+    //console.log(B);
     return (parseInt(A)+parseInt(B)).toString();
   };
 
@@ -60,7 +92,9 @@ https://github.com/LLK/scratchx/wiki#contents
     blocks: [
       //['h', 'when ISS passes over %s', 'whenISSPasses', 'Boston, MA'],
       ['r', 'Sum of 2 numbers %s %s','calculated', 1, 2], // sync call
-      ['R', 'Exp of numbers %s %s', 'delayedresult', 2, 4] // async call
+      ['R', 'Exp of numbers %s %s', 'delayedresult', 2, 4], // async call
+      ['r', 'Save variable %s %s','putvar', 'varname', 'varvalue'],
+      ['R', 'Get variable %s', 'getvar', 'variable']
     ],
     /*
     menus: {

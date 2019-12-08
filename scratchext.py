@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, send_from_directory, make_response
 from os.path import exists, join as pathjoin
 import sqlite3, string, random, sys
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins":"*"}})
 
 def print_debug(text):
     dbg = True #debug main switch
@@ -24,7 +26,7 @@ def check_cookie(ckname):
         return request.cookies.get(ckname)
     else:
         return 'X'
-    
+
 def check_session_cookie():
     return check_cookie('session_id')
 
@@ -45,20 +47,20 @@ def count_session_vars(db):
     sql = "select count(id) from myvar where session_id = '{}'".format(check_session_cookie())
     #print_debug(sql)
     return int(db.execute(sql).fetchone()[0])
-    
+
 def count_user_sessions(db):
     #counts how many sessions are owned by the current user
     sql = "select count(id) from sessions where user_id = {}".format(check_user_cookie())
     #print_debug(sql)
     return int(db.execute(sql).fetchone()[0])
-        
+
 @app.route("/")
 
 def index():
     #print_debug(request.user_agent.platform)
     #platforms = "Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini"
     if check_user_cookie() == 'X': return logon()
-        
+
     htdata = {'menu':'main'}
     return render_template("index.html", data = htdata)
 
@@ -79,11 +81,11 @@ def varlist():
     htdata['names'] = ['id','session_id','varname','varvalue']
     return render_template("varlist.html", data = htdata)
 
-@app.route("/newsession",methods=["POST","GET"])    
+@app.route("/newsession",methods=["POST","GET"])
 def newsession():
     if check_user_cookie() == 'X': return logon()
     htdata = {'menu':'sessions'} #this will be redefined in case we call mysessions()
-    
+
     if request.method == 'POST':
         db = opendb()
         if is_PRO(db) or count_user_sessions(db) < 1:
@@ -96,18 +98,18 @@ def newsession():
             return mysessions()
         else:
             htdata['info'] = "You must have a PRO account to add more than ONE session"
-    
+
     return render_template("newsession.html", data = htdata)
-    
+
 @app.route("/setsession/<session_id>")
 def setsession(session_id):
     if check_user_cookie() == 'X': return logon()
-    #sql = 
-    
+    #sql =
+
 @app.route("/mysessions")
 def mysessions():
     if check_user_cookie() == 'X': return logon()
-    
+
     #get the list of sessions and pass to the template
     htdata = {'menu':'sessions'}
     sql = "select id, session_id from sessions where user_id = {}".format(check_user_cookie())
@@ -125,7 +127,7 @@ def newvar():
 
     if request.method == 'POST':
         db = opendb()
-        
+
         if is_PRO(db) or count_session_vars(db) < 4:
             sql = "insert into myvar (session_id, varname, varvalue) values ('{}','{}','{}')"
             sql = sql.format(check_session_cookie(), request.form['varname'], request.form['varvalue'])
@@ -134,10 +136,10 @@ def newvar():
             return varlist()
         else:
             htdata['info'] = "You must have a PRO account to add more than 4 variables"
-        
+
     htdata['session'] = check_session_cookie()
     return render_template("newvar.html", data = htdata)
-    
+
 @app.route("/logon", methods=["POST","GET"])
 def logon():
     #is there a logon attempt?
@@ -182,19 +184,12 @@ def delete_session(id): #the ID is the auto_number of the table in this case
     db.execute("delete from myvar where session_id = '{}'".format(id_tx))
     db.commit()
     return 'ok'
-    
-@app.route("/pushvar/<varname>/<varvalue>")
-def pushvar(varname, varvalue):
-    db = opendb()
-    #try to get the record... and in case update
-
-    #otherwise create a new record
 
 
 ##The next TWO functions are used to deliver the scratch extension
-@app.route("/testext.js")
-def textext():
-    return render_template("testext.js")
+@app.route("/getlib/<session_id>/<js_file>")
+def textext(session_id, js_file):
+    return render_template(js_file,data={'session_id': session_id})
 
 @app.route("/crossdomain.xml")
 def crossdomain():
@@ -202,15 +197,38 @@ def crossdomain():
 
 @app.route("/testget/<A>/<B>")
 def testget(A,B):
-    return "{} + {}".format(A,B)
+    return "{}".format(int(A)*int(B))
+
+@app.route("/getvar/<session_id>/<varname>")
+def getvar(session_id, varname):
+    try:
+        db = opendb()
+        sql = "select varvalue from myvar where varname = '{}' and session_id = '{}'".format(varname,session_id)
+        varvalue = db.execute(sql).fetchone()[0]
+        return varvalue
+    except:
+        return 'error!'
+
+@app.route("/putvar/<session_id>/<varname>/<varvalue>")
+def putvar(session_id, varname, varvalue):
+    try:
+        db = opendb()
+        sql = "update myvar set varvalue = '{}'  where varname = '{}' and session_id = '{}'".format(varvalue,varname,session_id)
+        varvalue = db.execute(sql)
+        db.commit()
+        db.close()
+        return 'saved'
+    except:
+        return 'error!'
 
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(pathjoin(app.root_path, 'static'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')    
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 #commented to run under pythonanywhere.com
-
+'''
 if __name__ == "__main__":
     app.run(debug=True)
 #    app.run(host='192.168.1.112',debug=True)
+'''
