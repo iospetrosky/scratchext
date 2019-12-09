@@ -28,6 +28,7 @@ function run_local() {
 
 {% block CONTENTAREA %}
 <h2>Variables set for session <font color=green>{{ data.session }}</font></h2>
+<h3>Scratch lib: {{url_for('getlibrary', session_id = data.session, js_file = 'remotevar.js', _external = True)}}</h3>
 {% for line in data.rows %}
     <div class=DBROW>
     {% for n in range(4) %}

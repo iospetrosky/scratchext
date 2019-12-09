@@ -193,7 +193,7 @@ def updatedb():
     sql = "update {} set {} = '{}' where id = {}".format(
                 request.form['table'],request.form['field'],
                 request.form['value'],request.form['rowid'])
-    print_debug(sql)
+    #print_debug(sql)
     try:
         db.execute(sql)
         db.commit()
