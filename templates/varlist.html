@@ -1,12 +1,45 @@
 {% extends "base.html" %}
+{% block LOCALJS %}
+<script type="text/javascript">   
+function run_local() {
+    $(".FRM_EDITABLE").change(function(e) {
+        var toks = $(this).attr("ID").split("-");
+        $(this).addClass("ITEM_EDITED");
+        $.ajax({
+            type : 'POST',
+            url : "{{url_for('updatedb')}}",
+            data : {'table': 'myvar', 'field': toks[1],
+                    'value': $(this).val(),
+                    'rowid': toks[2],
+                    'itemid': $(this).attr("ID") },
+            success: function(data) {
+                console.log(data);
+                $("#" + data).removeClass("ITEM_EDITED");
+            }
+        });
+        
+    });
+
+}
+</script>
+{% endblock %}
+
+
+
 {% block CONTENTAREA %}
 <h2>Variables set for session <font color=green>{{ data.session }}</font></h2>
 {% for line in data.rows %}
     <div class=DBROW>
     {% for n in range(4) %}
-        <div class=DBFIELD style="width: {{ data.widths[n] }}px" id=FLD-{{ data.names[n] }} >
-            <span>{{ line[n] }}</span>
+        <div class=DBFIELD style="width: {{ data.widths[n] }}px" name=FLD-{{ data.names[n] }} >
+            {% if data.formelements[n] == 'text' %}
+            <span id=FLD-{{ data.names[n] }}-{{ line[0] }}>{{ line[n] }}</span>
+            {% endif %}
+            {% if data.formelements[n] == 'input' %}
+            <input type=text style="width: {{ data.widths[n] }}px" id=FLD-{{ data.names[n] }}-{{ line[0] }} class=FRM_EDITABLE value="{{ line[n] }}">
+            {% endif %}
         </div>
+        
     {% endfor %}
     </div>
 {% endfor %}

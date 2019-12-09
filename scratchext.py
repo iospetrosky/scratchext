@@ -74,10 +74,11 @@ def varlist():
     db = opendb()
     htdata['session'] = check_session_cookie()
     sql = "select id, session_id, varname, varvalue from myvar where session_id = '{}'".format(check_session_cookie())
-    print_debug(sql)
+    #print_debug(sql)
     rows = db.execute(sql).fetchall()
     htdata['rows'] = rows
-    htdata['widths'] = [30,180,80,250]
+    htdata['widths'] = [30,180,100,250]
+    htdata['formelements'] = ['text','text','input','input']
     htdata['names'] = ['id','session_id','varname','varvalue']
     return render_template("varlist.html", data = htdata)
 
@@ -183,12 +184,29 @@ def delete_session(id): #the ID is the auto_number of the table in this case
     db.execute("delete from sessions where id = {}".format(id))
     db.execute("delete from myvar where session_id = '{}'".format(id_tx))
     db.commit()
+    db.close()
     return 'ok'
 
+@app.route("/updatedb", methods=["POST"])
+def updatedb():
+    db = opendb()
+    sql = "update {} set {} = '{}' where id = {}".format(
+                request.form['table'],request.form['field'],
+                request.form['value'],request.form['rowid'])
+    print_debug(sql)
+    try:
+        db.execute(sql)
+        db.commit()
+        db.close()
+        return request.form['itemid']
+    except:
+        db.close() #will also rollback
+        return "err"
+    
 
-##The next TWO functions are used to deliver the scratch extension
+##SCRATCH EXTENSION
 @app.route("/getlib/<session_id>/<js_file>")
-def textext(session_id, js_file):
+def getlibrary(session_id, js_file):
     return render_template(js_file,data={'session_id': session_id})
 
 @app.route("/crossdomain.xml")
@@ -229,6 +247,6 @@ def favicon():
 #commented to run under pythonanywhere.com
 
 if __name__ == "__main__":
-#    app.run(debug=True)
-    app.run(host='192.168.1.112',debug=True)
+    app.run(debug=True)
+#    app.run(host='192.168.1.112',debug=True)
 
