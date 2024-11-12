@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, send_from_directory, make_response
 from os.path import exists, join as pathjoin
-import sqlite3, string, random, sys
+import string, random, sys
 from flask_cors import CORS
+import mysql.connector
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins":"*"}})
@@ -15,11 +16,20 @@ def print_debug(text):
 
 def opendb():
     if exists("/home/lorenzopedrotti/www"):
-        return sqlite3.connect('/home/lorenzopedrotti/www/flask.db')
+        return mysql.connector.connect(
+                host="lorenzopedrotti.mysql.pythonanywhere-services.com",
+                user="lorenzopedrotti",
+                passwd="shannara71",
+                database="lorenzopedrotti$myvar"
+                )
+    ''' to be configured on raspberry
     if exists("/home/pi/WWW/scratchext"):
         return sqlite3.connect('/home/pi/WWW/scratchext/flask.db')
+    '''
+    ''' It will not work on the Lenovo
     if exists("C:/Users/LPEDR/Documents/SAP/Util/flask"):
         return sqlite3.connect('C:/Users/LPEDR/Documents/SAP/Util/flask/flask.db')
+    '''
 
 def check_cookie(ckname):
     if ckname in request.cookies:
@@ -36,26 +46,30 @@ def check_user_cookie():
 def is_PRO(db):
     #check if a user is a PRO user
     sql = "select count(id) from users where id = {} and groups like '%PRO%'".format(check_user_cookie())
+    cur = db.cursor()
+    cur.execute(sql)
     #print_debug(sql)
-    if db.execute(sql).fetchone()[0] == 1:
+    if cur.fetchone()[0] == 1:
         return True
     else:
         return False
 
+def fetch_single_value(db,sql):
+    cur = db.cursor()
+    cur.execute(sql)
+    return cur.fetchone()[0]
+
 def count_session_vars(db):
     #counts the variables defined in this session
     sql = "select count(id) from myvar where session_id = '{}'".format(check_session_cookie())
-    #print_debug(sql)
-    return int(db.execute(sql).fetchone()[0])
+    return int(fetch_single_value(db,sql))
 
 def count_user_sessions(db):
     #counts how many sessions are owned by the current user
     sql = "select count(id) from sessions where user_id = {}".format(check_user_cookie())
-    #print_debug(sql)
-    return int(db.execute(sql).fetchone()[0])
+    return int(fetch_single_value(db,sql))
 
 @app.route("/")
-
 def index():
     #print_debug(request.user_agent.platform)
     #platforms = "Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini"
@@ -74,8 +88,10 @@ def varlist():
     db = opendb()
     htdata['session'] = check_session_cookie()
     sql = "select id, session_id, varname, varvalue from myvar where session_id = '{}'".format(check_session_cookie())
-    #print_debug(sql)
-    rows = db.execute(sql).fetchall()
+    cur = db.cursor()
+    cur.execute(sql)
+    rows = cur.fetchall()
+    db.close()
     htdata['rows'] = rows
     htdata['widths'] = [30,180,100,250]
     htdata['formelements'] = ['text','text','input','input']
@@ -94,10 +110,13 @@ def newsession():
             newid = ''.join(random.choice(letters) for i in range(12))
             sql = "insert into sessions (session_id, user_id) values ('{}','{}')"
             sql = sql.format(newid,check_user_cookie())
-            db.execute(sql)
+            cur = db.cursor()
+            cur.execute(sql)
             db.commit()
+            db.close()
             return mysessions()
         else:
+            db.close()
             htdata['info'] = "You must have a PRO account to add more than ONE session"
 
     return render_template("newsession.html", data = htdata)
@@ -114,7 +133,11 @@ def mysessions():
     #get the list of sessions and pass to the template
     htdata = {'menu':'sessions'}
     sql = "select id, session_id from sessions where user_id = {}".format(check_user_cookie())
-    rows = opendb().execute(sql).fetchall()
+    db = opendb()
+    cur = db.cursor()
+    cur.execute(sql)
+    rows = cur.fetchall()
+    db.close()
     htdata['rows'] = rows
     htdata['widths'] = [30,180]
     htdata['names'] = ['id','session_id']
@@ -132,10 +155,13 @@ def newvar():
         if is_PRO(db) or count_session_vars(db) < 4:
             sql = "insert into myvar (session_id, varname, varvalue) values ('{}','{}','{}')"
             sql = sql.format(check_session_cookie(), request.form['varname'], request.form['varvalue'])
-            db.execute(sql)
+            cur = db.cursor()
+            cur.execute(sql)
             db.commit()
+            db.close()
             return varlist()
         else:
+            db.close()
             htdata['info'] = "You must have a PRO account to add more than 4 variables"
 
     htdata['session'] = check_session_cookie()
@@ -146,7 +172,11 @@ def logon():
     #is there a logon attempt?
     if request.method == 'POST':
         sql = "select id, name from users where name = '{}' and passwd = '{}'".format(request.form['login'],request.form['password'])
-        user = opendb().execute(sql).fetchone()
+        db = opendb()
+        cur = db.cursor()
+        cur.execute(sql)
+        user = cur.fetchone()
+        db.close()
         if user is not None:
             htdata = {'menu':'main', 'screen':'welcome', 'info': "Welcome {}".format(user[1])}
             resp = make_response(render_template("index.html", data = htdata))
@@ -175,14 +205,20 @@ def logon():
 @app.route("/getsession/<id>")
 def get_session_name(id):
     sql = "select session_id from sessions where id = {}".format(id)
-    return make_response(opendb().execute(sql).fetchone()[0])
+    db = opendb()
+    val = fetch_single_value(db,sql)
+    db.close()
+    return make_response(val)
 
 @app.route("/delsession/<id>")
 def delete_session(id): #the ID is the auto_number of the table in this case
     db = opendb()
-    id_tx = db.execute("select session_id from sessions where id = {}".format(id)).fetchone()[0]
-    db.execute("delete from sessions where id = {}".format(id))
-    db.execute("delete from myvar where session_id = '{}'".format(id_tx))
+    cur = db.cursor()
+    cur.execute("select session_id from sessions where id = {}".format(id))
+    id_tx = cur.fetchone()[0]
+    cur = db.cursor()
+    cur.execute("delete from sessions where id = {}".format(id))
+    cur.execute("delete from myvar where session_id = '{}'".format(id_tx))
     db.commit()
     db.close()
     return 'ok'
@@ -195,14 +231,15 @@ def updatedb():
                 request.form['value'],request.form['rowid'])
     #print_debug(sql)
     try:
-        db.execute(sql)
+        cur = db.cursor()
+        cur.execute(sql)
         db.commit()
         db.close()
         return request.form['itemid']
     except:
         db.close() #will also rollback
         return "err"
-    
+
 
 ##SCRATCH EXTENSION
 @app.route("/getlib/<session_id>/<js_file>")
@@ -213,17 +250,14 @@ def getlibrary(session_id, js_file):
 def crossdomain():
     return render_template("crossdomain.xml")
 
-@app.route("/testget/<A>/<B>")
-def testget(A,B):
-    return "{}".format(int(A)*int(B))
-
 @app.route("/getvar/<session_id>/<varname>")
 def getvar(session_id, varname):
     try:
         db = opendb()
         sql = "select varvalue from myvar where varname = '{}' and session_id = '{}'".format(varname,session_id)
-        varvalue = db.execute(sql).fetchone()[0]
-        return varvalue
+        val = fetch_single_value(db,sql)
+        db.close()
+        return val
     except:
         return 'error!'
 
@@ -231,8 +265,9 @@ def getvar(session_id, varname):
 def putvar(session_id, varname, varvalue):
     try:
         db = opendb()
+        cur = db.cursor()
         sql = "update myvar set varvalue = '{}'  where varname = '{}' and session_id = '{}'".format(varvalue,varname,session_id)
-        varvalue = db.execute(sql)
+        cur.execute(sql)
         db.commit()
         db.close()
         return 'saved'
