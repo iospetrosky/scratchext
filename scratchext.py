@@ -22,14 +22,13 @@ def opendb():
                 passwd="shannara71",
                 database="lorenzopedrotti$myvar"
                 )
-    ''' to be configured on raspberry
     if exists("/home/pi/WWW/scratchext"):
-        return sqlite3.connect('/home/pi/WWW/scratchext/flask.db')
-    '''
-    ''' It will not work on the Lenovo
-    if exists("C:/Users/LPEDR/Documents/SAP/Util/flask"):
-        return sqlite3.connect('C:/Users/LPEDR/Documents/SAP/Util/flask/flask.db')
-    '''
+        return mysql.connector.connect(
+                host="localhost",
+                user="root",
+                passwd="emberlee1",
+                database="pyany01"
+                )
 
 def check_cookie(ckname):
     if ckname in request.cookies:
@@ -87,8 +86,14 @@ def varlist():
     #get the list from DB
     db = opendb()
     htdata['session'] = check_session_cookie()
-    sql = "select id, session_id, varname, varvalue from myvar where session_id = '{}'".format(check_session_cookie())
+    #retrieve the prittyname
+    sql = "select prittyname from sessions where session_id = '{}'".format(check_session_cookie())
     cur = db.cursor()
+    cur.execute(sql)
+    rows = cur.fetchone()
+    htdata['prittyname'] = rows[0]
+    #retrieve the variables
+    sql = "select id, session_id, varname, varvalue from myvar where session_id = '{}'".format(check_session_cookie())
     cur.execute(sql)
     rows = cur.fetchall()
     db.close()
@@ -124,7 +129,6 @@ def newsession():
 @app.route("/setsession/<session_id>")
 def setsession(session_id):
     if check_user_cookie() == 'X': return logon()
-    #sql =
 
 @app.route("/mysessions")
 def mysessions():
@@ -132,15 +136,16 @@ def mysessions():
 
     #get the list of sessions and pass to the template
     htdata = {'menu':'sessions'}
-    sql = "select id, session_id from sessions where user_id = {}".format(check_user_cookie())
+    sql = "select id, session_id, prittyname from sessions where user_id = {}".format(check_user_cookie())
     db = opendb()
     cur = db.cursor()
     cur.execute(sql)
     rows = cur.fetchall()
     db.close()
     htdata['rows'] = rows
-    htdata['widths'] = [30,180]
-    htdata['names'] = ['id','session_id']
+    htdata['widths'] = [30,180,300]
+    htdata['names'] = ['id','session_id','prittyname']
+    htdata['formelements'] = ['text','text','input']
     return render_template("mysessions.html", data = htdata)
 
 @app.route("/newvar", methods=["POST","GET"])
@@ -212,6 +217,7 @@ def get_session_name(id):
 
 @app.route("/delsession/<id>")
 def delete_session(id): #the ID is the auto_number of the table in this case
+    if check_user_cookie() == 'X': return logon()
     db = opendb()
     cur = db.cursor()
     cur.execute("select session_id from sessions where id = {}".format(id))
@@ -241,14 +247,14 @@ def updatedb():
         return "err"
 
 
-##SCRATCH EXTENSION
-@app.route("/getlib/<session_id>/<js_file>")
-def getlibrary(session_id, js_file):
-    return render_template(js_file,data={'session_id': session_id})
+##EXTERNAL CALLS
+# @app.route("/getlib/<session_id>/<js_file>")
+# def getlibrary(session_id, js_file):
+#     return render_template(js_file,data={'session_id': session_id})
 
-@app.route("/crossdomain.xml")
-def crossdomain():
-    return render_template("crossdomain.xml")
+# @app.route("/crossdomain.xml")
+# def crossdomain():
+#     return render_template("crossdomain.xml")
 
 @app.route("/getvar/<session_id>/<varname>")
 def getvar(session_id, varname):
@@ -282,6 +288,6 @@ def favicon():
 #commented to run under pythonanywhere.com
 
 if __name__ == "__main__":
-    app.run(debug=True)
-#    app.run(host='192.168.1.112',debug=True)
+    #app.run(debug=False)
+    app.run(host='192.168.1.30',debug=True)
 

@@ -34,3 +34,18 @@ body {
 #MENUBAR button:hover {
     background-color: #3e8e41;
 }
+
+.get-button {
+    background-color: #4CAF50; /* Green */
+    border: 1px solid black;
+    color: white;
+    padding: 3px 3px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    margin-bottom: 2px;
+    cursor: pointer;
+    margin-left: 5px;
+    
+}
