@@ -3,8 +3,6 @@
 {% block LOCALJS %}
 <script type="text/javascript">
 function run_local() {
-    console.log("Local functions defined");
-    
     $(".SESSION_ACT").mouseup(function(e) {
         var toks = $(this).attr("ID").split("-");
         if (toks[2] == 'ACTIV') {
@@ -16,7 +14,8 @@ function run_local() {
         if (toks[2] == 'DEL') {
             $.get("/delsession/" + toks[1], function(result) {
                 setCookie('session_id','',-1);
-                window.location.href = "/newsession"
+                console.log(result);
+                window.location.href = "/" + result; //it returns the page to redirect to
             });
         }
     });
