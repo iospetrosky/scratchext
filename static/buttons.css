@@ -35,8 +35,8 @@ body {
     background-color: #3e8e41;
 }
 
-.get-button {
-    background-color: #4CAF50; /* Green */
+.get-put-button {
+/* this is the basic shape of the get/put buttons */
     border: 1px solid black;
     color: white;
     padding: 3px 3px;
@@ -47,5 +47,12 @@ body {
     margin-bottom: 2px;
     cursor: pointer;
     margin-left: 5px;
-    
+}
+
+.get-button { /* extra features of the get button */
+    background-color: #7f99cd; 
+}
+
+.put-button { /* extra features of the put button */
+    background-color: #ae7fcd; 
 }

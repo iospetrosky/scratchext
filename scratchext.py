@@ -172,6 +172,28 @@ def newvar():
     htdata['session'] = check_session_cookie()
     return render_template("newvar.html", data = htdata)
 
+@app.route("/delvar/<var_id>")
+def delvar(var_id):
+    if check_user_cookie() == 'X': return logon()
+    if check_session_cookie() == 'X': return mysessions()
+    htdata = {'menu':'variables'} #this will be redefined in case we call varlist()
+
+    if request.method == 'GET':
+        db = opendb()
+        sql = "delete from myvar where id = {}"
+        sql = sql.format(var_id)
+        cur = db.cursor()
+        cur.execute(sql)
+        db.commit()
+        db.close()
+        return varlist()
+
+    htdata['session'] = check_session_cookie()
+    return varlist()
+
+
+
+
 @app.route("/logon", methods=["POST","GET"])
 def logon():
     #is there a logon attempt?
