@@ -248,8 +248,15 @@ def delete_session(id): #the ID is the auto_number of the table in this case
     cur.execute("delete from sessions where id = {}".format(id))
     cur.execute("delete from myvar where session_id = '{}'".format(id_tx))
     db.commit()
+    #check how many sessions are left and decide to which page redirect
+    sql = "select count(id) from sessions where user_id = '{}'" \
+                            .format(check_user_cookie())
+    numsessions = db.execute(sql).fetchone()[0]
     db.close()
-    return 'ok'
+    if numsessions == 0:
+        return 'newsession'
+    else:
+        return 'mysessions'
 
 @app.route("/updatedb", methods=["POST"])
 def updatedb():
@@ -310,6 +317,6 @@ def favicon():
 #commented to run under pythonanywhere.com
 
 if __name__ == "__main__":
-    #app.run(debug=False)
-    app.run(host='192.168.1.30',debug=True)
+    app.run(debug=False)
+    #app.run(host='192.168.1.30',debug=True)
 
