@@ -34,3 +34,25 @@ body {
 #MENUBAR button:hover {
     background-color: #3e8e41;
 }
+
+.get-put-button {
+/* this is the basic shape of the get/put buttons */
+    border: 1px solid black;
+    color: white;
+    padding: 3px 3px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    margin-bottom: 2px;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.get-button { /* extra features of the get button */
+    background-color: #7f99cd; 
+}
+
+.put-button { /* extra features of the put button */
+    background-color: #ae7fcd; 
+}

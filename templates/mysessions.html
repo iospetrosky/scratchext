@@ -19,6 +19,24 @@ function run_local() {
             });
         }
     });
+    $(".FRM_EDITABLE").change(function(e) {
+        var toks = $(this).attr("ID").split("-");
+        $(this).addClass("ITEM_EDITED");
+        $.ajax({
+            type : 'POST',
+            url : "{{url_for('updatedb')}}",
+            data : {'table': 'sessions', 'field': toks[1],
+                    'value': $(this).val(),
+                    'rowid': toks[2],
+                    'itemid': $(this).attr("ID") },
+            success: function(data) {
+                console.log(data);
+                $("#" + data).removeClass("ITEM_EDITED");
+            }
+        });
+        
+    });
+
 }
 </script>
 {% endblock %}
@@ -27,9 +45,15 @@ function run_local() {
 <h2>Select the session you want to activate</h2>
 {% for line in data.rows %}
     <div class=DBROW>
-    {% for n in range(2) %}
+    {% for n in range(3) %}
         <div class=DBFIELD style="width: {{ data.widths[n] }}px" id=FLD-{{ data.names[n] }} >
+            {% if data.formelements[n] == 'text' %}
             <span>{{ line[n] }}</span>
+            {% endif %}
+            {% if data.formelements[n] == 'input' %}
+            <input type=text style="width: {{ data.widths[n] }}px" id=FLD-{{ data.names[n] }}-{{ line[0] }} class=FRM_EDITABLE value="{{ line[n] }}">
+            {% endif %}
+
         </div>
     {% endfor %}
     <div class=DBFIELD>

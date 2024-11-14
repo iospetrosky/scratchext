@@ -19,6 +19,25 @@ function run_local() {
         });
         
     });
+    $('.get-put-button').click(function() {
+        // Get the value of the button
+        var buttonValue = $(this).val();
+        var $temp = $("<input>");
+        $("body").append($temp);
+        $temp.val(buttonValue).select();
+        document.execCommand("copy");
+        $temp.remove();
+        alert('Link copied to clipboard: \n' + buttonValue);
+    });
+    $(".SESSION_ACT").mouseup(function(e) {
+        var toks = $(this).attr("ID").split("-");
+        if (toks[2] == 'DEL') {
+            $.get("/delvar/" + toks[1], function(result) {
+                window.location.href = "/varlist"
+            });
+        }
+    });
+  
 
 }
 </script>
@@ -27,10 +46,12 @@ function run_local() {
 
 
 {% block CONTENTAREA %}
-<h2>Variables set for session <font color=green>{{ data.session }}</font></h2>
-<h3>Scratch lib: {{url_for('getlibrary', session_id = data.session, js_file = 'remotevar.js', _external = True)}}</h3>
+<h2>Variables set for session <font color=green>{{ data.prittyname }}</font></h2>
 {% for line in data.rows %}
     <div class=DBROW>
+    <div>
+        <button class=SESSION_ACT id=BUT-{{ line[0] }}-DEL>Delete</button>
+    </div>
     {% for n in range(4) %}
         <div class=DBFIELD style="width: {{ data.widths[n] }}px" name=FLD-{{ data.names[n] }} >
             {% if data.formelements[n] == 'text' %}
@@ -42,6 +63,8 @@ function run_local() {
         </div>
         
     {% endfor %}
+    <button class="get-put-button get-button" value = "{{ url_for('getvar', session_id = data.session , varname = line[2], _external=True) }}">GET</button>
+    <button class="get-put-button put-button" value = "{{ url_for('putvar', session_id = data.session , varname = line[2], varvalue = "a_value",  _external=True) }}">PUT</button>
     </div>
 {% endfor %}
 {% endblock %}
