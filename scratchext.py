@@ -317,6 +317,8 @@ def favicon():
 #commented to run under pythonanywhere.com
 
 if __name__ == "__main__":
-    app.run(debug=False)
-    #app.run(host='192.168.1.30',debug=True)
+    if exists("/home/lorenzopedrotti/www"):
+        app.run(debug=False)
+    else:
+        app.run(host='192.168.1.30',debug=True)
 
