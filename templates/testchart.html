@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block LOCALJS %}
+<script type="text/javascript">   
+function run_local() {
+
+}
+</script>
+{% endblock %}
+
+
+
+{% block CONTENTAREA %}
+<h2>This is a test chart</h2>
+<div>
+    <embed src="{{ data.chart }}" width="600" height="400" />
+</div>
+
+
+
+{% endblock %}

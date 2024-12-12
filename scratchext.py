@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, send_from_directory, make_response
 from os.path import exists, join as pathjoin
-import string, random, sys
+import string, random, sys, pygal
 from flask_cors import CORS
 import mysql.connector
 
@@ -77,6 +77,19 @@ def index():
     htdata = {'menu':'main'}
     return render_template("index.html", data = htdata)
 
+@app.route("/testchart")
+def testchart():
+    if check_user_cookie() == 'X': return logon()
+    if check_session_cookie() == 'X': return mysessions()
+    htdata = {'menu':'variables'}
+    line_chart = pygal.Line()
+    line_chart.title = 'Test chart'
+    line_chart.x_labels = ["a","b","c"]
+    line_chart.add('Peppers', [ 46.3, 42.8, 37.1])
+    line_chart.add('Roses',  [ 10.8, 23.8, 35.3])
+    htdata["chart"] = line_chart.render_data_uri()
+    return render_template("testchart.html", data = htdata)
+
 @app.route("/varlist")
 def varlist():
     if check_user_cookie() == 'X': return logon()
@@ -102,6 +115,37 @@ def varlist():
     htdata['formelements'] = ['text','text','input','input']
     htdata['names'] = ['id','session_id','varname','varvalue']
     return render_template("varlist.html", data = htdata)
+
+@app.route("/tablist")
+def tablist():
+    if check_user_cookie() == 'X': return logon()
+    if check_session_cookie() == 'X': return mysessions()
+
+    htdata = {'menu':'variables'}
+    #get the list from DB
+    db = opendb()
+    htdata['session'] = check_session_cookie()
+    #retrieve the prittyname
+    sql = "select prittyname from sessions where session_id = '{}'".format(check_session_cookie())
+    cur = db.cursor()
+    cur.execute(sql)
+    rows = cur.fetchone()
+    htdata['prittyname'] = rows[0]
+    # retrieve the tables
+    sql = "select id, session_id, tab_name, f1_name, f2_name,f3_name,"\
+          "f4_name,f5_name,f6_name,f7_name,f8_name,f9_name "\
+           "from table_defs where session_id='{}'".format(check_session_cookie())
+    cur.execute(sql)
+    rows = cur.fetchall()
+    db.close()
+    htdata['rows'] = rows
+    htdata['widths'] = [30,180,100,100,100,100,100,100,100,100,100,100]
+    htdata['headers'] = [' ',' ',' ','Table name','Field 1','Field 2','Field 3','Field 4','Field 5','Field 6','Field 7','Field 8','Field 9']
+    htdata['formelements'] = ['text','text','input','input','input','input','input','input','input','input','input','input']
+    htdata['names'] = ['id','session_id','tab_name','f1_name','f2_name','f3_name','f4_name','f5_name','f6_name','f7_name','f8_name','f9_name']
+    return render_template("tablist.html", data = htdata)
+
+
 
 @app.route("/newsession",methods=["POST","GET"])
 def newsession():
@@ -171,6 +215,31 @@ def newvar():
 
     htdata['session'] = check_session_cookie()
     return render_template("newvar.html", data = htdata)
+
+@app.route("/newtab", methods=["POST","GET"])
+def newtab():
+    if check_user_cookie() == 'X': return logon()
+    if check_session_cookie() == 'X': return mysessions()
+    htdata = {'menu':'variables'} #this will be redefined in case we call varlist()
+
+    if request.method == 'POST':
+        db = opendb()
+
+        if is_PRO(db) or count_session_vars(db) < 4:
+            sql = "insert into table_defs (session_id, tab_name) values ('{}','{}')"
+            sql = sql.format(check_session_cookie(), request.form['tabname'])
+            cur = db.cursor()
+            cur.execute(sql)
+            db.commit()
+            db.close()
+            return tablist()
+        else:
+            db.close()
+            htdata['info'] = "You must have a PRO account to add more than 4 variables"
+
+    htdata['session'] = check_session_cookie()
+    return render_template("newtab.html", data = htdata)
+
 
 @app.route("/delvar/<var_id>")
 def delvar(var_id):
